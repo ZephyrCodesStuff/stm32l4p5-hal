@@ -9,9 +9,10 @@ use core::ops::DerefMut;
 use core::ptr;
 use core::slice;
 use core::sync::atomic::{compiler_fence, Ordering};
-use embedded_dma::{StaticReadBuffer, StaticWriteBuffer};
 
 use crate::rcc::AHB1;
+use embedded_dma::ReadBuffer;
+use embedded_dma::WriteBuffer;
 use stable_deref_trait::StableDeref;
 
 #[non_exhaustive]
@@ -320,7 +321,7 @@ where
 
 impl<BUFFER, PAYLOAD> CircBuffer<BUFFER, PAYLOAD>
 where
-    &'static mut BUFFER: StaticWriteBuffer,
+    &'static mut BUFFER: WriteBuffer,
     BUFFER: 'static,
 {
     pub(crate) fn new(buf: &'static mut BUFFER, payload: PAYLOAD) -> Self {
@@ -1319,7 +1320,7 @@ pub trait ReceiveTransmit {
 /// Trait for circular DMA readings from peripheral to memory.
 pub trait CircReadDma<B, RS>: Receive
 where
-    &'static mut B: StaticWriteBuffer<Word = RS>,
+    &'static mut B: WriteBuffer<Word = RS>,
     B: 'static,
     Self: core::marker::Sized,
 {
@@ -1329,7 +1330,7 @@ where
 /// Trait for DMA readings from peripheral to memory.
 pub trait ReadDma<B, RS>: Receive
 where
-    B: StaticWriteBuffer<Word = RS>,
+    B: WriteBuffer<Word = RS>,
     Self: core::marker::Sized + TransferPayload,
 {
     fn read(self, buffer: B) -> Transfer<W, B, Self>;
@@ -1338,7 +1339,7 @@ where
 /// Trait for DMA writing from memory to peripheral.
 pub trait WriteDma<B, TS>: Transmit
 where
-    B: StaticReadBuffer<Word = TS>,
+    B: ReadBuffer<Word = TS>,
     Self: core::marker::Sized + TransferPayload,
 {
     fn write(self, buffer: B) -> Transfer<R, B, Self>;
@@ -1347,7 +1348,7 @@ where
 /// Trait for DMA simultaneously writing and reading between memory and peripheral.
 pub trait TransferDma<B, TS>: ReceiveTransmit
 where
-    B: StaticWriteBuffer<Word = TS>,
+    B: WriteBuffer<Word = TS>,
     Self: core::marker::Sized + TransferPayload,
 {
     fn transfer(self, buffer: B) -> Transfer<RW, B, Self>;

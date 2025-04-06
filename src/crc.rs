@@ -119,7 +119,7 @@ impl Config {
         };
 
         crc.init.write(|w| w.init().bits(init));
-        crc.pol.write(|w| unsafe { w.bits(poly) });
+        crc.pol.write(|w| w.bits(poly));
         crc.cr.write(|w| {
             w.rev_in()
                 .bits(in_rev_bits)

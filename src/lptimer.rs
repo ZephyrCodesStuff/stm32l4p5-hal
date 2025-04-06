@@ -181,7 +181,7 @@ macro_rules! hal {
                 // This operation is sound as `ClockSource as u8` only produces valid values
                 ccipr
                     .ccipr()
-                    .modify(|_, w| unsafe { w.$timXsel().bits(clock_source as u8) });
+                    .modify(|_, w| w.$timXsel().bits(clock_source as u8));
 
                 // This operation is sound as `PreScaler as u8` (which is the "unsafe" part) only
                 // produces valid values

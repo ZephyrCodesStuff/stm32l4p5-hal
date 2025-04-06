@@ -6,7 +6,7 @@ use crate::gpio::{
     gpioe::{PE10, PE11, PE12, PE13, PE14, PE15},
 };
 
-#[cfg(not(any(feature = "stm32l475")))]
+#[cfg(not(any(feature = "stm32l475", feature = "stm32l4p5")))]
 use crate::gpio::{
     gpioa::{PA2, PA3},
     gpiod::{PD3, PD4, PD5, PD6, PD7},
@@ -24,9 +24,9 @@ use crate::gpio::{
 };
 
 use crate::gpio::{Alternate, PushPull, Speed};
-use crate::rcc::{Enable, AHB3};
+use crate::rcc::AHB3;
 use crate::stm32::QUADSPI;
-use core::ptr;
+use core::{cell::UnsafeCell, ptr};
 
 #[doc(hidden)]
 mod private {
@@ -328,7 +328,7 @@ impl<CLK, NCS, IO0, IO1, IO2, IO3> Qspi<(CLK, NCS, IO0, IO1, IO2, IO3)> {
         IO3: IO3Pin<QUADSPI>,
     {
         // Enable quad SPI in the clocks.
-        QUADSPI::enable(ahb3);
+        // QUADSPI::enable(ahb3);
 
         // Disable QUADSPI before configuring it.
         qspi.cr.modify(|_, w| w.en().clear_bit());
@@ -676,7 +676,8 @@ impl<CLK, NCS, IO0, IO1, IO2, IO3> Qspi<(CLK, NCS, IO0, IO1, IO2, IO3)> {
             for byte in data {
                 while self.qspi.sr.read().ftf().bit_is_clear() {}
                 unsafe {
-                    ptr::write_volatile(&self.qspi.dr as *const _ as *mut u8, *byte);
+                    let dr_ptr = UnsafeCell::new(&self.qspi.dr);
+                    ptr::write_volatile(dr_ptr.get() as *mut u8, *byte);
                 }
             }
         }
@@ -708,7 +709,7 @@ pins!(
     IO3: [PE15, PA6]
 );
 
-#[cfg(not(any(feature = "stm32l475")))]
+#[cfg(not(any(feature = "stm32l475", feature = "stm32l4p5")))]
 pins!(
     QUADSPI,
     10,

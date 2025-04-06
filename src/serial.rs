@@ -2,12 +2,13 @@
 //!
 //! This module support both polling and interrupt based accesses to the serial peripherals.
 
+use core::cell::UnsafeCell;
 use core::fmt;
 use core::marker::PhantomData;
 use core::ops::DerefMut;
 use core::ptr;
 use core::sync::atomic::{self, Ordering};
-use embedded_dma::StaticWriteBuffer;
+use embedded_dma::WriteBuffer;
 use stable_deref_trait::StableDeref;
 
 use crate::hal::serial::{self, Write};
@@ -33,7 +34,7 @@ use crate::time::{Bps, U32Ext};
     feature = "stm32l486",
     feature = "stm32l496",
     feature = "stm32l4a6",
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -520,7 +521,8 @@ macro_rules! hal {
                         // NOTE(unsafe) atomic write to stateless register
                         // NOTE(write_volatile) 8-bit write that's not possible through the svd2rust API
                         unsafe {
-                            ptr::write_volatile(&(*pac::$USARTX::ptr()).tdr as *const _ as *mut _, byte)
+                            let tdr_ptr = UnsafeCell::new(&(*pac::$USARTX::ptr()).tdr);
+                            ptr::write_volatile(tdr_ptr.get() as *mut u8, byte);
                         }
                         Ok(())
                     } else {
@@ -706,14 +708,14 @@ macro_rules! hal {
 
             impl<B> crate::dma::CircReadDma<B, u8> for $rxdma
             where
-                &'static mut B: StaticWriteBuffer<Word = u8>,
+                &'static mut B: WriteBuffer<Word = u8>,
                 B: 'static,
                 Self: core::marker::Sized,
             {
                 fn circ_read(mut self, mut buffer: &'static mut B,
                 ) -> CircBuffer<B, Self>
                 {
-                    let (ptr, len) = unsafe { buffer.static_write_buffer() };
+                    let (ptr, len) = unsafe { buffer.write_buffer() };
                     self.channel.set_peripheral_address(
                         unsafe { &(*pac::$USARTX::ptr()).rdr as *const _ as u32 },
                         false,
@@ -867,7 +869,7 @@ hal! {
     feature = "stm32l486",
     feature = "stm32l496",
     feature = "stm32l4a6",
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -888,7 +890,7 @@ hal! {
     feature = "stm32l486",
     feature = "stm32l496",
     feature = "stm32l4a6",
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -1044,7 +1046,7 @@ impl_pin_traits! {
     // feature = "stm32l486",
     // feature = "stm32l496",
     // feature = "stm32l4a6",
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -1075,7 +1077,7 @@ impl_pin_traits! {
     feature = "stm32l486",
     feature = "stm32l496",
     feature = "stm32l4a6",
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -1103,7 +1105,7 @@ impl_pin_traits! {
     feature = "stm32l486",
     feature = "stm32l496",
     feature = "stm32l4a6",
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",

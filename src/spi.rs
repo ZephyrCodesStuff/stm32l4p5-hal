@@ -5,9 +5,11 @@
 //! don't have it (L432xx and L442xx don't, L452xx does). Users of this MCU variant that
 //! don't have it shouldn't attempt to use it. Relevant info is on user-manual level.
 
+use core::cell::UnsafeCell;
 use core::ptr;
 use core::sync::atomic;
 use core::sync::atomic::Ordering;
+use embedded_dma::{ReadBuffer, WriteBuffer};
 
 #[cfg(not(any(feature = "stm32l433", feature = "stm32l443",)))]
 use crate::dma::dma2;
@@ -17,8 +19,6 @@ use crate::gpio::{Alternate, PushPull};
 use crate::hal::spi::{FullDuplex, Mode, Phase, Polarity};
 use crate::rcc::{Clocks, Enable, RccBus, Reset};
 use crate::time::Hertz;
-
-use embedded_dma::{StaticReadBuffer, StaticWriteBuffer};
 
 /// SPI error
 #[non_exhaustive]
@@ -268,7 +268,10 @@ macro_rules! hal {
                         nb::Error::Other(Error::Crc)
                     } else if sr.txe().bit_is_set() {
                         // NOTE(write_volatile) see note above
-                        unsafe { ptr::write_volatile(&self.spi.dr as *const _ as *mut u8, byte) }
+                        unsafe {
+                            let dr_ptr = UnsafeCell::new(&self.spi.dr as *const _ as *mut u8);
+                            ptr::write_volatile(dr_ptr.get() as *mut u8, byte);
+                        }
                         return Ok(());
                     } else {
                         nb::Error::WouldBlock
@@ -292,7 +295,7 @@ use crate::gpio::gpiod::*;
     feature = "stm32l486",
     feature = "stm32l496",
     feature = "stm32l4a6",
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -322,7 +325,7 @@ pins!(SPI1, 5,
     feature = "stm32l486",
     feature = "stm32l496",
     feature = "stm32l4a6",
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -355,7 +358,7 @@ pins!(SPI3, 6,
     feature = "stm32l486",
     feature = "stm32l496",
     feature = "stm32l4a6",
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -714,7 +717,7 @@ macro_rules! spi_dma {
 
         impl<B, PINS> dma::ReadDma<B, u8> for SpiRxDma<$SPIX, PINS, $RX_CH>
         where
-            B: StaticWriteBuffer<Word = u8>,
+            B: WriteBuffer<Word = u8>,
         {
             fn read(mut self, mut buffer: B) -> dma::Transfer<dma::W, B, Self> {
                 // Setup DMA channels in accordance with RM 40.4.9, subheading "Communication using
@@ -722,7 +725,7 @@ macro_rules! spi_dma {
 
                 // NOTE(unsafe) We own the buffer now and we won't call other `&mut` on it
                 // until the end of the transfer.
-                let (ptr, len) = unsafe { buffer.static_write_buffer() };
+                let (ptr, len) = unsafe { buffer.write_buffer() };
 
                 // Setup RX channel addresses and length
                 self.channel.set_memory_address(ptr as u32, true);
@@ -738,7 +741,7 @@ macro_rules! spi_dma {
 
         impl<B, PINS> dma::WriteDma<B, u8> for SpiTxDma<$SPIX, PINS, $TX_CH>
         where
-            B: StaticReadBuffer<Word = u8>,
+            B: ReadBuffer<Word = u8>,
         {
             fn write(mut self, buffer: B) -> dma::Transfer<dma::R, B, Self> {
                 // Setup DMA channels in accordance with RM 40.4.9, subheading "Communication using
@@ -746,7 +749,7 @@ macro_rules! spi_dma {
 
                 // NOTE(unsafe) We own the buffer now and we won't call other `&mut` on it
                 // until the end of the transfer.
-                let (ptr, len) = unsafe { buffer.static_read_buffer() };
+                let (ptr, len) = unsafe { buffer.read_buffer() };
 
                 // Setup TX channel addresses and length
                 self.channel.set_memory_address(ptr as u32, true);
@@ -762,7 +765,7 @@ macro_rules! spi_dma {
 
         impl<B, PINS> dma::TransferDma<B, u8> for SpiRxTxDma<$SPIX, PINS, $RX_CH, $TX_CH>
         where
-            B: StaticWriteBuffer<Word = u8>,
+            B: WriteBuffer<Word = u8>,
         {
             fn transfer(mut self, mut buffer: B) -> dma::Transfer<dma::RW, B, Self> {
                 // Setup DMA channels in accordance with RM 40.4.9, subheading "Communication using
@@ -772,7 +775,7 @@ macro_rules! spi_dma {
 
                 // NOTE(unsafe) We own the buffer now and we won't call other `&mut` on it
                 // until the end of the transfer.
-                let (ptr, len) = unsafe { buffer.static_write_buffer() };
+                let (ptr, len) = unsafe { buffer.write_buffer() };
 
                 // Setup RX channel addresses and length
                 self.rx_channel.set_memory_address(ptr as u32, true);

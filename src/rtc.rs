@@ -3,33 +3,23 @@
 use core::convert::TryInto;
 
 /// refer to AN4759 to compare features of RTC2 and RTC3
-#[cfg(not(any(
-    feature = "stm32l412",
-    feature = "stm32l422",
-    feature = "stm32l4p5",
-    feature = "stm32l4q5"
-)))]
+#[cfg(not(any(feature = "stm32l412", feature = "stm32l422", feature = "stm32l4q5")))]
 pub mod rtc2;
-#[cfg(not(any(
-    feature = "stm32l412",
-    feature = "stm32l422",
-    feature = "stm32l4p5",
-    feature = "stm32l4q5"
-)))]
+#[cfg(not(any(feature = "stm32l412", feature = "stm32l422", feature = "stm32l4q5")))]
 pub use rtc2 as rtc_registers;
 
 /// refer to AN4759 to compare features of RTC2 and RTC3
 #[cfg(any(
     feature = "stm32l412",
     feature = "stm32l422",
-    feature = "stm32l4p5",
+    // feature = "stm32l4p5",
     feature = "stm32l4q5"
 ))]
 pub mod rtc3;
 #[cfg(any(
     feature = "stm32l412",
     feature = "stm32l422",
-    feature = "stm32l4p5",
+    // feature = "stm32l4p5",
     feature = "stm32l4q5"
 ))]
 pub use rtc3 as rtc_registers;
@@ -271,7 +261,7 @@ impl Rtc {
                 rtc_registers::clear_alarm_a_flag(rtc);
                 while !rtc_registers::is_alarm_a_accessible(rtc) {}
 
-                rtc.alrmar.modify(|_, w| unsafe {
+                rtc.alrmar().modify(|_, w| unsafe {
                     w.dt()
                         .bits(dt)
                         .du()
@@ -307,7 +297,7 @@ impl Rtc {
                 rtc_registers::clear_alarm_b_flag(rtc);
                 while !rtc_registers::is_alarm_b_accessible(rtc) {}
 
-                rtc.alrmbr.modify(|_, w| unsafe {
+                rtc.alrmbr().modify(|_, w| unsafe {
                     w.dt()
                         .bits(dt)
                         .du()

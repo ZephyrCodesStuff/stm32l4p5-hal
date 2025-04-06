@@ -180,13 +180,13 @@ bus! {
 
 // L4x5 or L4x6
 #[cfg(any(
-    feature = "stm32l475",
+    // feature = "stm32l475",
     feature = "stm32l476",
     feature = "stm32l485",
     feature = "stm32l486",
     feature = "stm32l496",
     feature = "stm32l4a6",
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -255,7 +255,7 @@ bus! {
 #[cfg(not(any(
     feature = "stm32l433",
     feature = "stm32l443",
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -269,7 +269,7 @@ bus! {
 }
 
 // L4x1, L4x2, L4x3, or L4x6 (L4+ assumed)
-#[cfg(not(any(feature = "stm32l475",)))]
+#[cfg(not(any(feature = "stm32l475", feature = "stm32l485", feature = "stm32l4p5",)))]
 bus! {
     CRS => (APB1R1, crsen,,), // 24 // TODO: fix absent
 }
@@ -310,7 +310,7 @@ bus! {
 }
 
 // L4x5
-#[cfg(any(feature = "stm32l475"))]
+#[cfg(any(feature = "stm32l475", feature = "stm32l4p5"))]
 bus! {
     DFSDM => (APB2, dfsdmen, dfsdmsmen, dfsdmrst), // 24
 }
@@ -358,7 +358,6 @@ bus! {
 }
 
 #[cfg(any(
-    // feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",

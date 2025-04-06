@@ -677,10 +677,9 @@ macro_rules! adc {
                     // Select system clock as ADC clock source
                     ccipr.ccipr().modify(|_, w| {
                         // This is sound, as `0b11` is a valid value for this field.
-                        unsafe {
-                            // TODO: Switch to enum once https://github.com/stm32-rs/stm32-rs/pull/720 is released.
-                            w.adcsel().bits(0b11);
-                        }
+
+                        // TODO: Switch to enum once https://github.com/stm32-rs/stm32-rs/pull/720 is released.
+                        w.adcsel().bits(0b11);
 
                         w
                     });

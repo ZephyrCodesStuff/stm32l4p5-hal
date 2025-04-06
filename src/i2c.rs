@@ -10,7 +10,6 @@ use crate::hal::blocking::i2c::{Read, Write, WriteRead};
     feature = "stm32l462",
     feature = "stm32l496",
     feature = "stm32l4a6",
-    // feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -206,7 +205,6 @@ hal!(I2C3, i2c3);
     feature = "stm32l462",
     feature = "stm32l496",
     feature = "stm32l4a6",
-    // feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -555,7 +553,7 @@ mod stm32l4x3_pins {
     pins!(I2C3, 4, SCL: [PA7, PC0], SDA: [PB4, PC1]);
 }
 
-#[cfg(any(feature = "stm32l475"))]
+#[cfg(any(feature = "stm32l475", feature = "stm32l4p5"))]
 mod stm32l4x5_pins {
     use super::{I2C1, I2C2, I2C3};
     use crate::gpio::*;

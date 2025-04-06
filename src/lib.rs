@@ -28,7 +28,7 @@
     feature = "stm32l496",
     feature = "stm32l4a6",
     // note L4+ PAC support is mostly missing so other than r9/s9 these features don't actually exist yet
-    // feature = "stm32l4p5",
+    feature = "stm32l4p5",
     // feature = "stm32l4q5",
     // feature = "stm32l4r5",
     // feature = "stm32l4s5",
@@ -99,7 +99,7 @@ pub use stm32l4::stm32l4x2 as pac;
 #[cfg(any(feature = "stm32l433", feature = "stm32l443"))]
 pub use stm32l4::stm32l4x3 as pac;
 
-#[cfg(any(feature = "stm32l475"))]
+#[cfg(any(feature = "stm32l475", feature = "stm32l4p5"))]
 pub use stm32l4::stm32l4x5 as pac;
 
 #[cfg(any(
